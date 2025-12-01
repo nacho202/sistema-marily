@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Nueva Venta - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <h2><i class="fas fa-cash-register"></i> Nueva Venta</h2>
+        
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        
+        <form method="POST" action="/ventas" id="ventaForm" class="form">
+            <div class="form-group">
+                <label for="cliente_id">Cliente</label>
+                <div style="position: relative;">
+                    <input type="text" id="cliente_search" placeholder="Buscar cliente por nombre..." autocomplete="off" style="width: 100%; padding: 0.7rem; border: 1px solid #d1cfff; border-radius: 4px; font-size: 1rem; background-color: #f2f1ff;">
+                    <select id="cliente_id" name="cliente_id" style="display: none;">
+                        <option value="">Cliente no registrado</option>
+                        <% clientes.forEach(cliente => { %>
+                            <option value="<%= cliente.id %>" data-nombre="<%= cliente.nombre.toLowerCase() %>" <%= (typeof cliente_id !== 'undefined' && cliente_id == cliente.id) ? 'selected' : '' %>>
+                                <%= cliente.nombre %>
+                            </option>
+                        <% }); %>
+                    </select>
+                    <div id="cliente-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #f2f1ff; border: 1px solid #d1cfff; border-top: none; border-radius: 0 0 4px 4px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                </div>
+                <div style="margin-top: 0.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="cliente_no_registrado" style="width: auto;">
+                        <span>Cliente no registrado</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Formulario para crear cliente inline -->
+            <div id="form-nuevo-cliente" style="display: none;" class="form-inline">
+                <div class="form-group">
+                    <h3>Crear Cliente Nuevo</h3>
+                </div>
+                <div class="form-group">
+                    <label for="cliente_nombre">Nombre *</label>
+                    <input type="text" id="cliente_nombre" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="cliente_telefono">Teléfono</label>
+                    <input type="text" id="cliente_telefono">
+                </div>
+                <div class="form-group">
+                    <label for="cliente_email">Email</label>
+                    <input type="email" id="cliente_email">
+                </div>
+                <div class="form-group">
+                    <label for="cliente_direccion">Dirección</label>
+                    <input type="text" id="cliente_direccion">
+                </div>
+                <div class="form-group">
+                    <label for="cliente_fecha_nacimiento">Fecha de Nacimiento</label>
+                    <input type="date" id="cliente_fecha_nacimiento">
+                </div>
+                <div class="form-group">
+                    <label for="cliente_nota">Nota</label>
+                    <textarea id="cliente_nota" rows="2"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-guardar-cliente" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cliente</button>
+                    <button type="button" id="btn-cancelar-cliente" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</button>
+                </div>
+                <div id="cliente-error" class="alert alert-error" style="display: none;"></div>
+            </div>
+            
+            <div class="form-group">
+                <h3>Productos</h3>
+                <div id="productos-container">
+                    <div class="producto-item">
+                        <select name="productos[0][producto_id]" class="producto-select" required>
+                            <option value="">Seleccionar producto</option>
+                            <% productos.forEach(producto => { %>
+                                <option value="<%= producto.id %>" data-precio="<%= producto.precio %>" data-stock="<%= producto.stock_actual %>">
+                                    <%= producto.nombre %> - $<%= producto.precio.toFixed(2) %> (Stock: <%= producto.stock_actual %>)
+                                </option>
+                            <% }); %>
+                        </select>
+                        <input type="number" name="productos[0][cantidad]" placeholder="Cantidad" min="1" required class="cantidad-input">
+                        <span class="subtotal">$0.00</span>
+                                    <button type="button" class="btn btn-danger btn-small remove-producto" style="display:none;"><i class="fas fa-trash"></i> Eliminar</button>
+                    </div>
+                </div>
+                <button type="button" id="agregar-producto" class="btn btn-secondary"><i class="fas fa-plus"></i> Agregar Producto</button>
+            </div>
+            
+            <div class="form-group">
+                <h3>Total: <span id="total-venta">$0.00</span></h3>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Crear Venta</button>
+                <a href="/ventas" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+            </div>
+        </form>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/ventas.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

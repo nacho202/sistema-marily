@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Estadísticas - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <h2><i class="fas fa-chart-bar"></i> Estadísticas</h2>
+        
+        <!-- Filtro de fechas -->
+        <form method="GET" action="/estadisticas" class="search-form" style="margin-bottom: 2rem;">
+            <label>Filtrar por período:</label>
+            <input type="date" name="fecha_inicio" value="<%= fechaInicio || estadisticas.fechaInicio || '' %>" required>
+            <span>hasta</span>
+            <input type="date" name="fecha_fin" value="<%= fechaFin || estadisticas.fechaFin || '' %>" required>
+            <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Filtrar</button>
+            <% if (fechaInicio || fechaFin) { %>
+                <a href="/estadisticas" class="btn btn-link"><i class="fas fa-times-circle"></i> Ver Todo</a>
+            <% } %>
+        </form>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total de Productos</h3>
+                <p class="stat-value"><%= estadisticas.totalProductos %></p>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Total de Clientes</h3>
+                <p class="stat-value"><%= estadisticas.totalClientes %></p>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Total Vendido</h3>
+                <p class="stat-value">$<%= parseFloat(estadisticas.totalVendido).toFixed(2) %></p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3><i class="fas fa-box"></i> Productos Más Vendidos (TOP 5)</h3>
+                <% if (estadisticas.totalProductosVendidos > 5) { %>
+                    <% const fechaInicioParam = fechaInicio || estadisticas.fechaInicio; %>
+                    <% const fechaFinParam = fechaFin || estadisticas.fechaFin; %>
+                    <a href="/estadisticas/productos-mas-vendidos?fecha_inicio=<%= fechaInicioParam %>&fecha_fin=<%= fechaFinParam %>" class="btn btn-secondary btn-small">
+                        <i class="fas fa-list"></i> Ver Todo
+                    </a>
+                <% } %>
+            </div>
+            <% if (estadisticas.productosMasVendidos && estadisticas.productosMasVendidos.length > 0) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad Vendida</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% estadisticas.productosMasVendidos.forEach(producto => { %>
+                            <tr>
+                                <td><%= producto.nombre %></td>
+                                <td><strong><%= producto.total_vendido %></strong></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p class="no-data">No hay datos de productos vendidos.</p>
+            <% } %>
+        </div>
+        
+        <div class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3><i class="fas fa-users"></i> Clientes que Más Compraron (TOP 5)</h3>
+                <% if (estadisticas.totalClientesCompraron > 5) { %>
+                    <% const fechaInicioParam = fechaInicio || estadisticas.fechaInicio; %>
+                    <% const fechaFinParam = fechaFin || estadisticas.fechaFin; %>
+                    <a href="/estadisticas/clientes-mas-compraron?fecha_inicio=<%= fechaInicioParam %>&fecha_fin=<%= fechaFinParam %>" class="btn btn-secondary btn-small">
+                        <i class="fas fa-list"></i> Ver Todo
+                    </a>
+                <% } %>
+            </div>
+            <% if (estadisticas.clientesMasCompraron && estadisticas.clientesMasCompraron.length > 0) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Total Gastado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% estadisticas.clientesMasCompraron.forEach(cliente => { %>
+                            <tr>
+                                <td><a href="/clientes/<%= cliente.id %>"><%= cliente.nombre %></a></td>
+                                <td><strong>$<%= parseFloat(cliente.total_gastado).toFixed(2) %></strong></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p class="no-data">No hay datos de clientes.</p>
+            <% } %>
+        </div>
+        
+        <div class="section">
+            <h3><i class="fas fa-chart-line"></i> Ventas por Día</h3>
+            <% if (estadisticas.ventasPorDia && estadisticas.ventasPorDia.length > 0) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Cantidad de Productos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% estadisticas.ventasPorDia.forEach(venta => { %>
+                            <tr>
+                                <td><%= new Date(venta.fecha).toLocaleDateString('es-AR') %></td>
+                                <td><strong>$<%= parseFloat(venta.total).toFixed(2) %></strong></td>
+                                <td><strong><%= venta.cantidad_productos || 0 %></strong></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p class="no-data">No hay ventas registradas en el período seleccionado.</p>
+            <% } %>
+        </div>
+        
+        <div class="section">
+            <h3><i class="fas fa-balance-scale"></i> Herramientas de Análisis</h3>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="/estadisticas/comparar" class="btn btn-secondary">
+                    <i class="fas fa-exchange-alt"></i> Comparar Mes a Mes
+                </a>
+                <a href="/estadisticas/margen-ganancia?fecha_inicio=<%= fechaInicio || estadisticas.fechaInicio %>&fecha_fin=<%= fechaFin || estadisticas.fechaFin %>" class="btn btn-secondary">
+                    <i class="fas fa-dollar-sign"></i> Margen de Ganancia por Producto
+                </a>
+            </div>
+        </div>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Nuevo Cliente - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <h2><i class="fas fa-user-plus"></i> Nuevo Cliente</h2>
+        
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        
+        <form method="POST" action="/clientes" class="form">
+            <div class="form-group">
+                <label for="nombre">Nombre *</label>
+                <input type="text" id="nombre" name="nombre" required value="<%= typeof cliente !== 'undefined' ? cliente.nombre : '' %>">
+            </div>
+            
+            <div class="form-group">
+                <label for="telefono">Teléfono</label>
+                <input type="text" id="telefono" name="telefono" value="<%= typeof cliente !== 'undefined' ? cliente.telefono || '' : '' %>">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="<%= typeof cliente !== 'undefined' ? cliente.email || '' : '' %>">
+            </div>
+            
+            <div class="form-group">
+                <label for="direccion">Dirección</label>
+                <input type="text" id="direccion" name="direccion" value="<%= typeof cliente !== 'undefined' ? cliente.direccion || '' : '' %>">
+            </div>
+            
+            <div class="form-group">
+                <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="<%= typeof cliente !== 'undefined' ? cliente.fecha_nacimiento || '' : '' %>">
+            </div>
+            
+            <div class="form-group">
+                <label for="nota">Nota</label>
+                <textarea id="nota" name="nota" rows="3"><%= typeof cliente !== 'undefined' ? cliente.nota || '' : '' %></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Crear Cliente</button>
+                <a href="/clientes" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+            </div>
+        </form>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

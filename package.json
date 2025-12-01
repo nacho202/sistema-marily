@@ -1,0 +1,23 @@
+{
+  "name": "sistema-vivero",
+  "version": "1.0.0",
+  "description": "Sistema de gestión de stock, clientes y ventas para vivero",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "share": "echo 'Iniciando servidor y ngrok...' && start cmd /k \"npm start\" && timeout /t 3 && npx ngrok http 3000"
+  },
+  "keywords": ["vivero", "stock", "ventas", "clientes"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ejs": "^3.1.9",
+    "better-sqlite3": "^9.2.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
+

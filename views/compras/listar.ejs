@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Compras - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-shopping-bag"></i> Compras</h2>
+            <a href="/compras/nueva" class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Compra</a>
+        </div>
+        
+        <% if (compras && compras.length > 0) { %>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Proveedor</th>
+                        <th>Productos</th>
+                        <th>Total</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% compras.forEach(compra => { %>
+                        <tr>
+                            <td>#<%= compra.id %></td>
+                            <td>
+                                <% 
+                                // Parsear fecha manualmente para evitar problemas de zona horaria
+                                const partesFecha = compra.fecha.split(' ')[0].split('-'); // Tomar solo la parte de fecha si hay hora
+                                const diaCompra = parseInt(partesFecha[2]);
+                                const mesCompra = parseInt(partesFecha[1]);
+                                const anioCompra = parseInt(partesFecha[0]);
+                                %>
+                                <%= diaCompra %>/<%= mesCompra %>/<%= anioCompra %>
+                            </td>
+                            <td><%= compra.proveedor || '-' %></td>
+                            <td><%= compra.cantidad_productos || 0 %></td>
+                            <td>
+                                <% if (compra.total) { %>
+                                    $<%= parseFloat(compra.total).toFixed(2) %>
+                                <% } else { %>
+                                    -
+                                <% } %>
+                            </td>
+                            <td>
+                                <a href="/compras/<%= compra.id %>" class="btn btn-small btn-primary" title="Ver Detalle"><i class="fas fa-eye"></i></a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p class="no-data">No se encontraron compras.</p>
+        <% } %>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

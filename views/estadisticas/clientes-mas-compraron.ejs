@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Clientes que Más Compraron - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-users"></i> Clientes que Más Compraron</h2>
+            <a href="/estadisticas?fecha_inicio=<%= fechaInicio %>&fecha_fin=<%= fechaFin %>" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Estadísticas
+            </a>
+        </div>
+        
+        <div class="section">
+            <p><strong>Período:</strong> <%= new Date(fechaInicio).toLocaleDateString('es-AR') %> - <%= new Date(fechaFin).toLocaleDateString('es-AR') %></p>
+        </div>
+        
+        <% if (clientes && clientes.length > 0) { %>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Cliente</th>
+                        <th>Total Gastado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% clientes.forEach((cliente, index) => { %>
+                        <tr>
+                            <td><strong><%= index + 1 %></strong></td>
+                            <td><a href="/clientes/<%= cliente.id %>"><%= cliente.nombre %></a></td>
+                            <td><strong>$<%= parseFloat(cliente.total_gastado).toFixed(2) %></strong></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p class="no-data">No hay clientes con compras en el período seleccionado.</p>
+        <% } %>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,15 @@
+<!-- Modal de ayuda -->
+<div id="help-modal" class="help-modal">
+    <div class="help-modal-content">
+        <div class="help-modal-header">
+            <h3><i class="fas fa-question-circle"></i> Ayuda</h3>
+            <button class="help-modal-close" id="help-modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="help-modal-body">
+            <%- typeof helpContent !== 'undefined' ? helpContent : '<p>No hay información de ayuda disponible para esta página.</p>' %>
+        </div>
+    </div>
+</div>
+

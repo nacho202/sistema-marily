@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Productos Más Vendidos - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-box"></i> Productos Más Vendidos</h2>
+            <a href="/estadisticas?fecha_inicio=<%= fechaInicio %>&fecha_fin=<%= fechaFin %>" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Estadísticas
+            </a>
+        </div>
+        
+        <div class="section">
+            <p><strong>Período:</strong> <%= new Date(fechaInicio).toLocaleDateString('es-AR') %> - <%= new Date(fechaFin).toLocaleDateString('es-AR') %></p>
+        </div>
+        
+        <% if (productos && productos.length > 0) { %>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Producto</th>
+                        <th>Cantidad Vendida</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% productos.forEach((producto, index) => { %>
+                        <tr>
+                            <td><strong><%= index + 1 %></strong></td>
+                            <td><%= producto.nombre %></td>
+                            <td><strong><%= producto.total_vendido %></strong></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p class="no-data">No hay productos vendidos en el período seleccionado.</p>
+        <% } %>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Detalle Cliente - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-user"></i> Detalle del Cliente</h2>
+            <a href="/clientes/<%= cliente.id %>/editar" class="btn btn-secondary"><i class="fas fa-edit"></i> Editar</a>
+        </div>
+        
+        <div class="detail-section">
+            <h3>Datos Personales</h3>
+            <table class="table-detail">
+                <tr>
+                    <th>Nombre:</th>
+                    <td><%= cliente.nombre %></td>
+                </tr>
+                <tr>
+                    <th>Teléfono:</th>
+                    <td><%= cliente.telefono || '-' %></td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td><%= cliente.email || '-' %></td>
+                </tr>
+                <tr>
+                    <th>Dirección:</th>
+                    <td><%= cliente.direccion || '-' %></td>
+                </tr>
+                <tr>
+                    <th>Fecha de Nacimiento:</th>
+                    <td>
+                        <% if (cliente.fecha_nacimiento) { %>
+                            <% 
+                            // Parsear fecha manualmente para evitar problemas de zona horaria
+                            const partesFecha = cliente.fecha_nacimiento.split('-');
+                            const diaNac = parseInt(partesFecha[2]);
+                            const mesNac = parseInt(partesFecha[1]);
+                            const anioNac = parseInt(partesFecha[0]);
+                            
+                            // Nombres de meses en español
+                            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                                          'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                            %>
+                            <%= diaNac %> de <%= meses[mesNac - 1] %> de <%= anioNac %>
+                        <% } else { %>
+                            -
+                        <% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Nota:</th>
+                    <td><%= cliente.nota || '-' %></td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="detail-section">
+            <h3>Historial de Compras</h3>
+            <% if (ventas && ventas.length > 0) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Productos</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% ventas.forEach(venta => { %>
+                            <tr>
+                                <td><%= new Date(venta.fecha).toLocaleString('es-AR') %></td>
+                                <td>$<%= parseFloat(venta.total).toFixed(2) %></td>
+                                <td><%= venta.cantidad_productos || 0 %></td>
+                                <td>
+                                    <a href="/ventas/<%= venta.id %>" class="btn btn-small btn-primary"><i class="fas fa-eye"></i> Ver Detalle</a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p class="no-data">Este cliente no tiene compras registradas.</p>
+            <% } %>
+        </div>
+        
+        <div class="form-actions">
+            <a href="/clientes" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver a Clientes</a>
+        </div>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

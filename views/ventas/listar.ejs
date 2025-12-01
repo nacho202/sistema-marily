@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Ventas - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-shopping-cart"></i> Ventas</h2>
+            <a href="/ventas/nueva" class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Venta</a>
+        </div>
+        
+        <form method="GET" action="/ventas" class="search-form">
+            <label>Filtrar por fecha:</label>
+            <input type="date" name="fecha_inicio" value="<%= fechaInicio %>">
+            <input type="date" name="fecha_fin" value="<%= fechaFin %>">
+            <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Filtrar</button>
+            <% if (fechaInicio || fechaFin) { %>
+                <a href="/ventas" class="btn btn-link"><i class="fas fa-times-circle"></i> Limpiar</a>
+            <% } %>
+        </form>
+        
+        <% if (ventas && ventas.length > 0) { %>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% ventas.forEach(venta => { %>
+                        <tr>
+                            <td>#<%= venta.id %></td>
+                            <td><%= new Date(venta.fecha).toLocaleString('es-AR') %></td>
+                            <td><%= venta.cliente_nombre || 'Cliente no registrado' %></td>
+                            <td><strong>$<%= parseFloat(venta.total).toFixed(2) %></strong></td>
+                            <td>
+                                <a href="/ventas/<%= venta.id %>" class="btn btn-small btn-primary" title="Ver Detalle"><i class="fas fa-eye"></i></a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p class="no-data">No se encontraron ventas.</p>
+        <% } %>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

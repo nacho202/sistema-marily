@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Inicio - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <h2><i class="fas fa-home"></i> Dashboard</h2>
+        
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h3><i class="fas fa-dollar-sign"></i> Total Vendido (Mes Actual)</h3>
+                <p class="dashboard-value">$<%= totalVendidoMes.toFixed(2) %></p>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3><i class="fas fa-box"></i> Total de Productos</h3>
+                <p class="dashboard-value"><%= totalProductos %></p>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3><i class="fas fa-users"></i> Total de Clientes</h3>
+                <p class="dashboard-value"><%= totalClientes %></p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3><i class="fas fa-birthday-cake"></i> Próximos Cumpleaños</h3>
+            <% if (proximosCumpleanios && proximosCumpleanios.length > 0) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Días restantes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% proximosCumpleanios.slice(0, 10).forEach(cumple => { %>
+                            <tr>
+                                <td><%= cumple.nombre %></td>
+                                <td>
+                                    <% 
+                                    // Usar los valores originales si están disponibles, sino parsear la fecha
+                                    let diaMostrar, mesMostrar;
+                                    if (cumple.dia_cumpleanios && cumple.mes_cumpleanios) {
+                                        diaMostrar = cumple.dia_cumpleanios;
+                                        mesMostrar = cumple.mes_cumpleanios;
+                                    } else {
+                                        const partesFecha = cumple.fecha_cumpleanios.split('-');
+                                        diaMostrar = parseInt(partesFecha[2]);
+                                        mesMostrar = parseInt(partesFecha[1]);
+                                    }
+                                    
+                                    // Nombres de meses en español
+                                    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                                                  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                                    %>
+                                    <%= diaMostrar %> de <%= meses[mesMostrar - 1] %>
+                                </td>
+                                <td>
+                                    <% if (cumple.dias_restantes === 0) { %>
+                                        <strong>¡Hoy!</strong>
+                                    <% } else if (cumple.dias_restantes === 1) { %>
+                                        Mañana
+                                    <% } else { %>
+                                        <%= cumple.dias_restantes %> días
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+                <a href="/cumpleanios" class="btn btn-secondary"><i class="fas fa-birthday-cake"></i> Ver todos los cumpleaños</a>
+            <% } else { %>
+                <p>No hay cumpleaños próximos en los próximos 30 días.</p>
+            <% } %>
+        </div>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

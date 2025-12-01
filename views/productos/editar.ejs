@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Editar Producto - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <h2><i class="fas fa-box"></i> Editar Producto</h2>
+        
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        
+        <form method="POST" action="/productos/<%= producto.id %>/editar" class="form">
+            <div class="form-group">
+                <label for="nombre">Nombre *</label>
+                <input type="text" id="nombre" name="nombre" required value="<%= producto.nombre %>">
+            </div>
+            
+            <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                <textarea id="descripcion" name="descripcion" rows="3"><%= producto.descripcion || '' %></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="precio">Precio *</label>
+                <input type="number" id="precio" name="precio" step="0.01" min="0" required value="<%= producto.precio %>">
+            </div>
+            
+            <div class="form-group">
+                <label>Stock Actual</label>
+                <p class="info-text">Stock actual: <strong><%= producto.stock_actual %></strong> (usar "Sumar Stock" desde el listado para actualizar)</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="imagen">Imagen (URL o nombre de archivo)</label>
+                <input type="text" id="imagen" name="imagen" value="<%= producto.imagen || '' %>">
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar Producto</button>
+                <a href="/productos" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+            </div>
+        </form>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Margen de Ganancia - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-dollar-sign"></i> Margen de Ganancia por Producto</h2>
+            <a href="/estadisticas" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Estadísticas
+            </a>
+        </div>
+        
+        <form method="GET" action="/estadisticas/margen-ganancia" class="search-form" style="margin-bottom: 2rem;">
+            <label>Filtrar por período:</label>
+            <input type="date" name="fecha_inicio" value="<%= fechaInicio || '' %>" required>
+            <span>hasta</span>
+            <input type="date" name="fecha_fin" value="<%= fechaFin || '' %>" required>
+            <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Filtrar</button>
+        </form>
+        
+        <% if (totales) { %>
+            <div class="stats-grid" style="margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <h3>Total Ventas</h3>
+                    <p class="stat-value">$<%= parseFloat(totales.ventas).toFixed(2) %></p>
+                </div>
+                <div class="stat-card" style="border-color: #ef4444;">
+                    <h3>Total Costos</h3>
+                    <p class="stat-value" style="color: #ef4444;">$<%= parseFloat(totales.costos).toFixed(2) %></p>
+                </div>
+                <div class="stat-card" style="border-color: #10b981;">
+                    <h3>Ganancia Neta</h3>
+                    <p class="stat-value" style="color: #10b981;">$<%= parseFloat(totales.ganancia).toFixed(2) %></p>
+                </div>
+            </div>
+        <% } %>
+        
+        <% if (margenes && margenes.length > 0) { %>
+            <div class="section">
+                <h3>Margen por Producto</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad Vendida</th>
+                            <th>Total Ventas</th>
+                            <th>Total Costos</th>
+                            <th>Ganancia</th>
+                            <th>Margen %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% margenes.forEach(producto => { %>
+                            <tr>
+                                <td><strong><%= producto.nombre %></strong></td>
+                                <td><%= producto.cantidad_vendida %></td>
+                                <td>$<%= parseFloat(producto.total_ventas).toFixed(2) %></td>
+                                <td style="color: #ef4444;">$<%= parseFloat(producto.total_costos).toFixed(2) %></td>
+                                <td style="color: <%= producto.ganancia >= 0 ? '#10b981' : '#ef4444' %>; font-weight: bold;">
+                                    $<%= parseFloat(producto.ganancia).toFixed(2) %>
+                                </td>
+                                <td style="color: <%= producto.margen_porcentaje >= 0 ? '#10b981' : '#ef4444' %>; font-weight: bold;">
+                                    <%= producto.margen_porcentaje >= 0 ? '+' : '' %><%= producto.margen_porcentaje %>%
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <p class="no-data">No hay datos de margen de ganancia para el período seleccionado.</p>
+        <% } %>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

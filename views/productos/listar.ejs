@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Productos - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-box"></i> Productos</h2>
+            <a href="/productos/nuevo" class="btn btn-primary"><i class="fas fa-plus"></i> Nuevo Producto</a>
+        </div>
+        
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        
+        <form method="GET" action="/productos" class="search-form">
+            <input type="text" name="buscar" placeholder="Buscar producto..." value="<%= termino %>">
+            <input type="hidden" name="mostrar_deshabilitados" value="<%= mostrarDeshabilitados ? '1' : '0' %>">
+            <button type="submit" class="btn btn-secondary"><i class="fas fa-search"></i> Buscar</button>
+            <% if (termino) { %>
+                <a href="/productos<%= mostrarDeshabilitados ? '?mostrar_deshabilitados=1' : '' %>" class="btn btn-link"><i class="fas fa-times-circle"></i> Limpiar</a>
+            <% } %>
+            <a href="/productos?mostrar_deshabilitados=<%= mostrarDeshabilitados ? '0' : '1' %><%= termino ? '&buscar=' + termino : '' %>" class="btn btn-secondary">
+                <i class="fas fa-<%= mostrarDeshabilitados ? 'eye-slash' : 'eye' %>"></i> 
+                <%= mostrarDeshabilitados ? 'Ocultar' : 'Mostrar' %> Deshabilitados
+            </a>
+        </form>
+        
+        <% if (productos && productos.length > 0) { %>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% productos.forEach(producto => { %>
+                        <tr>
+                            <td><strong><%= producto.nombre %></strong></td>
+                            <td><%= producto.descripcion || '-' %></td>
+                            <td>$<%= producto.precio.toFixed(2) %></td>
+                            <td>
+                                <span class="stock <%= producto.stock_actual <= 5 ? 'stock-bajo' : '' %>">
+                                    <%= producto.stock_actual %>
+                                </span>
+                            </td>
+                            <td class="actions">
+                                <a href="/productos/<%= producto.id %>/editar" class="btn btn-small btn-secondary"><i class="fas fa-edit"></i> Editar</a>
+                                <form method="POST" action="/productos/<%= producto.id %>/eliminar" class="inline-form" onsubmit="return confirm('¿Estás seguro de deshabilitar este producto? No se mostrará en las listas pero se mantendrá en el historial.');">
+                                    <button type="submit" class="btn btn-small btn-danger"><i class="fas fa-ban"></i> Deshabilitar</button>
+                                </form>
+                                <form method="POST" action="/productos/<%= producto.id %>/stock" class="inline-form stock-form stock-form-desktop">
+                                    <input type="number" name="cantidad" placeholder="Cantidad" min="1" required class="input-small">
+                                    <button type="submit" class="btn btn-small btn-primary"><i class="fas fa-plus-circle"></i> Sumar Stock</button>
+                                </form>
+                                <button type="button" class="btn btn-small btn-primary stock-btn-mobile" data-producto-id="<%= producto.id %>" data-producto-nombre="<%= producto.nombre %>">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p class="no-data">No se encontraron productos activos.</p>
+        <% } %>
+        
+        <% if (mostrarDeshabilitados && productosDeshabilitados && productosDeshabilitados.length > 0) { %>
+            <div class="section" style="margin-top: 2rem; border-top: 2px solid #d1cfff; padding-top: 2rem;">
+                <h3 style="color: #666;"><i class="fas fa-ban"></i> Productos Deshabilitados</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% productosDeshabilitados.forEach(producto => { %>
+                            <tr style="opacity: 0.7;">
+                                <td><strong><%= producto.nombre %></strong></td>
+                                <td><%= producto.descripcion || '-' %></td>
+                                <td>$<%= producto.precio.toFixed(2) %></td>
+                                <td>
+                                    <span class="stock <%= producto.stock_actual <= 5 ? 'stock-bajo' : '' %>">
+                                        <%= producto.stock_actual %>
+                                    </span>
+                                </td>
+                                <td class="actions">
+                                    <form method="POST" action="/productos/<%= producto.id %>/habilitar" class="inline-form" onsubmit="return confirm('¿Estás seguro de habilitar este producto?');">
+                                        <button type="submit" class="btn btn-small btn-primary"><i class="fas fa-check-circle"></i> Habilitar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else if (mostrarDeshabilitados && (!productosDeshabilitados || productosDeshabilitados.length === 0)) { %>
+            <div class="section" style="margin-top: 2rem; border-top: 2px solid #d1cfff; padding-top: 2rem;">
+                <h3 style="color: #666;"><i class="fas fa-ban"></i> Productos Deshabilitados</h3>
+                <p class="no-data">No hay productos deshabilitados.</p>
+            </div>
+        <% } %>
+    </main>
+    
+    <!-- Modal para sumar stock (móvil) -->
+    <div id="modal-stock" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Sumar Stock</h3>
+                <button type="button" class="modal-close" id="close-modal-stock">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="modal-producto-nombre"></p>
+                <form id="form-stock-modal" method="POST" class="form">
+                    <div class="form-group">
+                        <label for="cantidad-stock">Cantidad</label>
+                        <input type="number" id="cantidad-stock" name="cantidad" placeholder="Cantidad" min="1" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Sumar Stock</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-modal-stock"><i class="fas fa-times"></i> Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/productos.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

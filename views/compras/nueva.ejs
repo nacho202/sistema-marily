@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Nueva Compra - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <h2><i class="fas fa-truck"></i> Nueva Compra</h2>
+        
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        
+        <form method="POST" action="/compras" id="compraForm" class="form">
+            <div class="form-group">
+                <label for="fecha">Fecha</label>
+                <input type="date" id="fecha" name="fecha" value="<%= typeof fecha !== 'undefined' ? fecha : '' %>">
+            </div>
+            
+            <div class="form-group">
+                <label for="proveedor">Proveedor</label>
+                <input type="text" id="proveedor" name="proveedor" value="<%= typeof proveedor !== 'undefined' ? proveedor : '' %>">
+            </div>
+            
+            <div class="form-group">
+                <h3>Productos</h3>
+                <div id="productos-container">
+                    <div class="producto-item">
+                        <div style="position: relative; flex: 1;">
+                            <input type="text" class="producto-search" placeholder="Buscar producto por nombre..." autocomplete="off" style="width: 100%; padding: 0.7rem; border: 1px solid #d1cfff; border-radius: 4px; font-size: 1rem; background-color: #f2f1ff;">
+                            <select name="productos[0][producto_id]" class="producto-select" required style="display: none;">
+                                <option value="">Seleccionar producto</option>
+                                <% productos.forEach(producto => { %>
+                                    <option value="<%= producto.id %>" data-nombre="<%= producto.nombre.toLowerCase() %>" data-stock="<%= producto.stock_actual %>">
+                                        <%= producto.nombre %> (Stock: <%= producto.stock_actual %>)
+                                    </option>
+                                <% }); %>
+                            </select>
+                            <div class="producto-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #f2f1ff; border: 1px solid #d1cfff; border-top: none; border-radius: 0 0 4px 4px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                        </div>
+                        <input type="number" name="productos[0][cantidad]" placeholder="Cantidad" min="1" required class="cantidad-input">
+                        <input type="number" name="productos[0][costo_unitario]" placeholder="Costo unitario (opcional)" step="0.01" min="0" class="costo-input">
+                        <button type="button" class="btn btn-danger btn-small remove-producto" style="display:none;"><i class="fas fa-trash"></i> Eliminar</button>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button type="button" id="agregar-producto" class="btn btn-secondary"><i class="fas fa-plus"></i> Agregar Producto</button>
+                    <button type="button" id="btn-crear-producto" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Crear Producto Nuevo</button>
+                </div>
+            </div>
+            
+            <!-- Formulario para crear producto inline -->
+            <div id="form-nuevo-producto" style="display: none;" class="form-inline">
+                <div class="form-group">
+                    <h3>Crear Producto Nuevo</h3>
+                </div>
+                <div class="form-group">
+                    <label for="producto_nombre">Nombre *</label>
+                    <input type="text" id="producto_nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="producto_descripcion">Descripción</label>
+                    <textarea id="producto_descripcion" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="producto_precio">Precio *</label>
+                    <input type="number" id="producto_precio" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="producto_stock">Stock Inicial</label>
+                    <input type="number" id="producto_stock" min="0" value="0">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-guardar-producto" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Producto</button>
+                    <button type="button" id="btn-cancelar-producto" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</button>
+                </div>
+                <div id="producto-error" class="alert alert-error" style="display: none;"></div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Registrar Compra</button>
+                <a href="/compras" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+            </div>
+        </form>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/compras.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Cumpleaños - El Rincon de Doña Rosa</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+    
+    <main class="container">
+        <h2><i class="fas fa-birthday-cake"></i> Calendario de Cumpleaños</h2>
+        
+        <% if (clientes && clientes.length > 0) { %>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Fecha de Nacimiento</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% clientes.forEach(cliente => { %>
+                        <tr>
+                            <td><strong><%= cliente.nombre %></strong></td>
+                            <td>
+                                <% if (cliente.fecha_nacimiento) { %>
+                                    <% 
+                                    // Parsear fecha manualmente para evitar problemas de zona horaria
+                                    const partesFecha = cliente.fecha_nacimiento.split('-');
+                                    const diaNac = parseInt(partesFecha[2]);
+                                    const mesNac = parseInt(partesFecha[1]);
+                                    
+                                    // Nombres de meses en español
+                                    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                                                  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                                    %>
+                                    <%= diaNac %> de <%= meses[mesNac - 1] %>
+                                <% } else { %>
+                                    -
+                                <% } %>
+                            </td>
+                            <td><%= cliente.telefono || '-' %></td>
+                            <td><%= cliente.email || '-' %></td>
+                            <td>
+                                <a href="/clientes/<%= cliente.id %>" class="btn btn-small btn-primary" title="Ver Cliente"><i class="fas fa-eye"></i></a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p class="no-data">No hay clientes con fecha de nacimiento registrada.</p>
+        <% } %>
+    </main>
+    
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+    
+    <script src="/js/main.js"></script>
+    <script src="/js/help.js"></script>
+</body>
+</html>
+
