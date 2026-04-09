@@ -264,6 +264,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnGuardarProducto = document.getElementById('btn-guardar-producto');
     const btnCancelarProducto = document.getElementById('btn-cancelar-producto');
     const productoError = document.getElementById('producto-error');
+    const productoNombre = document.getElementById('producto_nombre');
+    const productoDescripcion = document.getElementById('producto_descripcion');
+    const productoPrecio = document.getElementById('producto_precio');
+    const productoStock = document.getElementById('producto_stock');
+
+    function toggleFormNuevoProducto(habilitar) {
+        const campos = [productoNombre, productoDescripcion, productoPrecio, productoStock];
+        campos.forEach(campo => {
+            if (!campo) return;
+            campo.disabled = !habilitar;
+        });
+        if (productoNombre) productoNombre.required = Boolean(habilitar);
+        if (productoPrecio) productoPrecio.required = Boolean(habilitar);
+    }
+
+    // Si el formulario está oculto al cargar, deshabilitar campos para evitar validación HTML
+    if (formNuevoProducto && formNuevoProducto.style.display === 'none') {
+        toggleFormNuevoProducto(false);
+    }
     
     // Mostrar formulario de nuevo producto
     if (btnCrearProducto && formNuevoProducto) {
@@ -271,6 +290,8 @@ document.addEventListener('DOMContentLoaded', function() {
             formNuevoProducto.style.display = 'block';
             // No necesitamos un targetItem específico, se agregará al último item o al primero vacío
             formNuevoProducto.dataset.targetItem = 'last';
+            toggleFormNuevoProducto(true);
+            if (productoNombre) productoNombre.focus();
         });
     }
     
@@ -379,6 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnCancelarProducto) {
         btnCancelarProducto.addEventListener('click', function() {
             formNuevoProducto.style.display = 'none';
+            toggleFormNuevoProducto(false);
             productoError.style.display = 'none';
             document.getElementById('producto_nombre').value = '';
             document.getElementById('producto_descripcion').value = '';
