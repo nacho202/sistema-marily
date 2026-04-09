@@ -36,5 +36,30 @@ const upload = multer({
   },
 });
 
-module.exports = { upload };
+function saveBase64ImageToUploads(dataUrl) {
+  const match = String(dataUrl || '').match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
+  if (!match) throw new Error('Formato de imagen base64 inválido');
+
+  const mime = match[1].toLowerCase();
+  const b64 = match[2];
+  const ext =
+    mime === 'image/png' ? '.png' :
+    mime === 'image/webp' ? '.webp' :
+    mime === 'image/gif' ? '.gif' :
+    '.jpg';
+
+  const filename = safeFilename(`cropped${ext}`);
+  const filePath = path.join(uploadDir, filename);
+  const buffer = Buffer.from(b64, 'base64');
+
+  // límite de 5MB aprox alineado con multer
+  if (buffer.length > 5 * 1024 * 1024) {
+    throw new Error('La imagen recortada supera el límite de 5MB');
+  }
+
+  fs.writeFileSync(filePath, buffer);
+  return { publicUrl: `/uploads/productos/${filename}`, filePath };
+}
+
+module.exports = { upload, saveBase64ImageToUploads };
 

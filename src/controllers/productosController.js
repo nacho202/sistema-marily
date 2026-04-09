@@ -1,6 +1,7 @@
 const productosModel = require('../models/productos');
 const path = require('path');
 const fs = require('fs');
+const { saveBase64ImageToUploads } = require('../middleware/uploads');
 
 function normalizeUrls(input) {
   if (!input) return [];
@@ -10,6 +11,15 @@ function normalizeUrls(input) {
     .map(v => v.trim())
     .filter(Boolean)
     .filter(v => /^https?:\/\//i.test(v));
+}
+
+function normalizeBase64Images(input) {
+  if (!input) return [];
+  const arr = Array.isArray(input) ? input : [input];
+  return arr
+    .map(v => String(v).trim())
+    .filter(Boolean)
+    .filter(v => /^data:image\//i.test(v));
 }
 
 function fileToPublicUrl(file) {
@@ -82,6 +92,7 @@ function crear(req, res) {
   try {
     const { nombre, descripcion, precio, stock_actual } = req.body;
     const imagenesUrls = normalizeUrls(req.body['imagenes_urls[]'] || req.body.imagenes_urls);
+    const imagenesBase64 = normalizeBase64Images(req.body['imagenes_base64[]'] || req.body.imagenes_base64);
 
     // Validaciones
     if (!nombre || !precio) {
@@ -125,6 +136,12 @@ function crear(req, res) {
     for (const file of files) {
       const url = fileToPublicUrl(file);
       productosModel.addImagen(productoId, url, 'upload');
+    }
+
+    // Guardar imágenes recortadas (base64) como archivos
+    for (const dataUrl of imagenesBase64) {
+      const saved = saveBase64ImageToUploads(dataUrl);
+      productosModel.addImagen(productoId, saved.publicUrl, 'upload');
     }
 
     // Si es una petición AJAX, devolver JSON con el nuevo producto
@@ -175,6 +192,7 @@ function actualizar(req, res) {
   try {
     const { nombre, descripcion, precio } = req.body;
     const imagenesUrls = normalizeUrls(req.body['imagenes_urls[]'] || req.body.imagenes_urls);
+    const imagenesBase64 = normalizeBase64Images(req.body['imagenes_base64[]'] || req.body.imagenes_base64);
 
     // Validaciones
     if (!nombre || !precio) {
@@ -215,6 +233,12 @@ function actualizar(req, res) {
     for (const file of files) {
       const url = fileToPublicUrl(file);
       productosModel.addImagen(req.params.id, url, 'upload');
+    }
+
+    // Agregar imágenes recortadas (base64)
+    for (const dataUrl of imagenesBase64) {
+      const saved = saveBase64ImageToUploads(dataUrl);
+      productosModel.addImagen(req.params.id, saved.publicUrl, 'upload');
     }
 
     res.redirect('/productos');

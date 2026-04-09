@@ -12,6 +12,73 @@ function initBlock(block) {
 
   if (!list) return;
 
+  async function addBase64Image(dataUrl) {
+    const normalized = String(dataUrl || '').trim();
+    if (!/^data:image\//i.test(normalized)) return;
+
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.gap = '0.5rem';
+    row.style.alignItems = 'center';
+    row.style.marginTop = '0.5rem';
+
+    const preview = document.createElement('img');
+    preview.src = normalized;
+    preview.alt = 'Imagen';
+    preview.style.width = '56px';
+    preview.style.height = '56px';
+    preview.style.objectFit = 'cover';
+    preview.style.borderRadius = '6px';
+    preview.style.border = '1px solid #d1cfff';
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'imagenes_base64[]';
+    input.value = normalized;
+
+    const text = document.createElement('div');
+    text.style.flex = '1';
+    text.style.overflow = 'hidden';
+    text.style.textOverflow = 'ellipsis';
+    text.style.whiteSpace = 'nowrap';
+    text.textContent = 'Imagen recortada (cuadrada)';
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'btn btn-small btn-danger';
+    remove.textContent = 'Quitar';
+    remove.addEventListener('click', () => row.remove());
+
+    row.appendChild(preview);
+    row.appendChild(text);
+    row.appendChild(remove);
+    row.appendChild(input);
+
+    list.appendChild(row);
+  }
+
+  async function cropFromSrc(src) {
+    if (!window.openImageCropper) return null;
+    try {
+      const cropped = await window.openImageCropper(src);
+      return cropped;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function handleImageFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    const dataUrl = await new Promise((resolve, reject) => {
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+      reader.readAsDataURL(file);
+    });
+    const cropped = await cropFromSrc(dataUrl);
+    if (cropped) await addBase64Image(cropped);
+  }
+
   function addUrl(url) {
     const normalized = String(url || '').trim();
     if (!/^https?:\/\//i.test(normalized)) return;
@@ -114,14 +181,54 @@ function initBlock(block) {
       e.preventDefault();
       dropzone.style.outline = 'none';
 
-      // Si soltaron archivos, se manejan con el input file (queda para enviar el form)
-      if (fileInput && e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-        fileInput.files = e.dataTransfer.files;
+      // Si soltaron archivos de imagen, recortar y guardar como base64 hidden
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        const files = Array.from(e.dataTransfer.files).filter((f) => /^image\//.test(f.type));
+        files.forEach((f) => handleImageFile(f));
         return;
       }
 
       const url = extractUrlFromDataTransfer(e.dataTransfer);
-      if (url) addUrl(url);
+      if (url) {
+        // Intentar recortar también links (si CORS lo permite); si no, guarda el link
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = async () => {
+          const cropped = await cropFromSrc(url);
+          if (cropped) await addBase64Image(cropped);
+          else addUrl(url);
+        };
+        img.onerror = () => addUrl(url);
+        img.src = url;
+      }
+    });
+  }
+
+  // Subida desde input file -> recortar y guardar como base64 hidden
+  if (fileInput) {
+    fileInput.addEventListener('change', () => {
+      const files = Array.from(fileInput.files || []).filter((f) => /^image\//.test(f.type));
+      files.forEach((f) => handleImageFile(f));
+      // Limpiar input para permitir subir el mismo archivo de nuevo
+      fileInput.value = '';
+    });
+  }
+
+  // Pegar con Ctrl+V (imagen o link)
+  if (dropzone) {
+    dropzone.tabIndex = 0;
+    dropzone.addEventListener('paste', (e) => {
+      const items = Array.from(e.clipboardData?.items || []);
+      const imgItem = items.find((it) => it.type && it.type.startsWith('image/'));
+      if (imgItem) {
+        const file = imgItem.getAsFile();
+        if (file) handleImageFile(file);
+        return;
+      }
+      const text = e.clipboardData?.getData('text/plain');
+      if (text && /^https?:\/\//i.test(text.trim())) {
+        addUrl(text.trim());
+      }
     });
   }
 }

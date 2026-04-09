@@ -74,6 +74,23 @@
                     <label for="producto_stock">Stock Inicial</label>
                     <input type="number" id="producto_stock" min="0" value="0" disabled>
                 </div>
+
+                <div class="form-group">
+                    <label>Imágenes</label>
+                    <div data-producto-imagenes id="compras-producto-imagenes">
+                        <div data-imagen-dropzone style="padding: 1rem; border: 1px dashed #d1cfff; border-radius: 8px; background: #f8f7ff;">
+                            <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+                                <input type="file" name="imagenes_files" accept="image/*" multiple disabled>
+                                <input type="text" data-imagen-url-input placeholder="Pegá un link de imagen (https://...)" style="flex: 1; min-width: 220px;" disabled>
+                                <button type="button" class="btn btn-small btn-secondary" data-imagen-add-url disabled>Agregar link</button>
+                            </div>
+                            <p style="margin: 0.75rem 0 0; color:#666; font-size: 0.9rem;">
+                                Tip: podés <strong>arrastrar y soltar</strong> una imagen o un link, o pegar con <strong>Ctrl+V</strong>.
+                            </p>
+                        </div>
+                        <div data-imagen-list style="margin-top: 0.75rem;"></div>
+                    </div>
+                </div>
                 <div class="form-actions">
                     <button type="button" id="btn-guardar-producto" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Producto</button>
                     <button type="button" id="btn-cancelar-producto" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</button>
@@ -90,8 +107,13 @@
     
     <%- include('../partials/help-button') %>
     <%- include('../partials/help-modal') %>
+    <%- include('../partials/image-cropper-modal') %>
     
     <script src="/js/main.js?v=<%= assetVersion || 'dev' %>"></script>
+    <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
+    <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js"></script>
+    <script src="/js/image-cropper.js?v=<%= assetVersion || 'dev' %>"></script>
+    <script src="/js/producto-imagenes.js?v=<%= assetVersion || 'dev' %>"></script>
     <script src="/js/compras.js?v=<%= assetVersion || 'dev' %>"></script>
     <script src="/js/help.js?v=<%= assetVersion || 'dev' %>"></script>
 </body>

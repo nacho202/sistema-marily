@@ -62,8 +62,12 @@
     
     <%- include('../partials/help-button') %>
     <%- include('../partials/help-modal') %>
+    <%- include('../partials/image-cropper-modal') %>
     
     <script src="/js/main.js?v=<%= assetVersion || 'dev' %>"></script>
+    <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
+    <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js"></script>
+    <script src="/js/image-cropper.js?v=<%= assetVersion || 'dev' %>"></script>
     <script src="/js/producto-imagenes.js?v=<%= assetVersion || 'dev' %>"></script>
     <script src="/js/help.js?v=<%= assetVersion || 'dev' %>"></script>
 </body>

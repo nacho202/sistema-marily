@@ -268,6 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const productoDescripcion = document.getElementById('producto_descripcion');
     const productoPrecio = document.getElementById('producto_precio');
     const productoStock = document.getElementById('producto_stock');
+    const comprasProductoImagenes = document.getElementById('compras-producto-imagenes');
 
     function toggleFormNuevoProducto(habilitar) {
         const campos = [productoNombre, productoDescripcion, productoPrecio, productoStock];
@@ -277,6 +278,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (productoNombre) productoNombre.required = Boolean(habilitar);
         if (productoPrecio) productoPrecio.required = Boolean(habilitar);
+
+        if (comprasProductoImagenes) {
+            const inputs = comprasProductoImagenes.querySelectorAll('input, button, textarea');
+            inputs.forEach(el => {
+                // No deshabilitar los hidden inputs generados en el listado
+                if (el.type === 'hidden') return;
+                el.disabled = !habilitar;
+            });
+        }
     }
 
     // Si el formulario está oculto al cargar, deshabilitar campos para evitar validación HTML
@@ -319,14 +329,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    nombre: nombre,
-                    descripcion: descripcion || null,
-                    precio: precio,
-                    stock_actual: stock,
-                    imagen: null
-                })
+                body: JSON.stringify(buildProductoPayload({ nombre, descripcion, precio, stock }))
             })
             .then(response => response.json())
             .then(data => {
@@ -373,7 +378,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('producto_precio').value = '';
                     document.getElementById('producto_stock').value = '0';
                     formNuevoProducto.style.display = 'none';
+                    toggleFormNuevoProducto(false);
                     productoError.style.display = 'none';
+                    if (comprasProductoImagenes) {
+                        const list = comprasProductoImagenes.querySelector('[data-imagen-list]');
+                        if (list) list.innerHTML = '';
+                    }
                     
                     // Actualizar la lista de productos en todos los items (no re-inicializar completamente)
                     // Los nuevos items ya tendrán el producto cuando se creen
@@ -411,4 +421,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inicializar
     actualizarIndices();
+
+    function buildProductoPayload({ nombre, descripcion, precio, stock }) {
+        const payload = {
+            nombre: nombre,
+            descripcion: descripcion || null,
+            precio: precio,
+            stock_actual: stock,
+        };
+
+        if (comprasProductoImagenes) {
+            const urls = Array.from(comprasProductoImagenes.querySelectorAll('input[name="imagenes_urls[]"]')).map(i => i.value);
+            const base64 = Array.from(comprasProductoImagenes.querySelectorAll('input[name="imagenes_base64[]"]')).map(i => i.value);
+            payload.imagenes_urls = urls;
+            payload.imagenes_base64 = base64;
+        }
+
+        return payload;
+    }
 });
