@@ -6,6 +6,9 @@ data/database.sqlite
 data/*.sqlite
 data/*.db
 
+# Datos exportados
+datos-exportados.json
+
 # Logs
 *.log
 npm-debug.log*

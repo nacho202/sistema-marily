@@ -1,10 +1,18 @@
 const express = require('express');
 const path = require('path');
+const session = require('express-session');
 const db = require('./db/database');
 const { getHelpContent } = require('./utils/helpContent');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('Falta configurar SESSION_SECRET en producción');
+}
+
+// Necesario para cookies secure detrás de Nginx (reverse proxy)
+app.set('trust proxy', 1);
 
 // Configuración de EJS
 app.set('view engine', 'ejs');
@@ -16,8 +24,38 @@ app.locals.basedir = path.join(__dirname, '../views');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(
+  session({
+    name: 'sistema_marily_sid',
+    secret: process.env.SESSION_SECRET || 'dev-secret-cambiar',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 semana
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    },
+  })
+);
+
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Autenticación
+app.use(require('./routes/auth'));
+app.use((req, res, next) => {
+  res.locals.authUser = req.session?.auth?.username || null;
+
+  const isLoggedIn = Boolean(req.session?.auth?.loggedIn);
+  const isAuthRoute = req.path === '/login' || req.path === '/logout';
+
+  if (isAuthRoute) return next();
+  if (isLoggedIn) return next();
+
+  const nextUrl = encodeURIComponent(req.originalUrl || '/');
+  return res.redirect(`/login?next=${nextUrl}`);
+});
 
 // Middleware para pasar la ruta actual y contenido de ayuda a las vistas
 app.use((req, res, next) => {
