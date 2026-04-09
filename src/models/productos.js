@@ -5,7 +5,20 @@ const { getDb } = require('../db/database');
  */
 function getAll() {
   const db = getDb();
-  return db.prepare('SELECT * FROM productos WHERE activo = 1 ORDER BY nombre').all();
+  return db.prepare(`
+    SELECT 
+      p.*,
+      (
+        SELECT url 
+        FROM producto_imagenes pi 
+        WHERE pi.producto_id = p.id 
+        ORDER BY pi.id DESC 
+        LIMIT 1
+      ) as thumb_url
+    FROM productos p
+    WHERE p.activo = 1
+    ORDER BY p.nombre
+  `).all();
 }
 
 /**
@@ -13,7 +26,19 @@ function getAll() {
  */
 function getAllIncludingDisabled() {
   const db = getDb();
-  return db.prepare('SELECT * FROM productos ORDER BY nombre').all();
+  return db.prepare(`
+    SELECT 
+      p.*,
+      (
+        SELECT url 
+        FROM producto_imagenes pi 
+        WHERE pi.producto_id = p.id 
+        ORDER BY pi.id DESC 
+        LIMIT 1
+      ) as thumb_url
+    FROM productos p
+    ORDER BY p.nombre
+  `).all();
 }
 
 /**
@@ -21,8 +46,44 @@ function getAllIncludingDisabled() {
  */
 function searchByNombre(termino) {
   const db = getDb();
-  return db.prepare('SELECT * FROM productos WHERE nombre LIKE ? AND activo = 1 ORDER BY nombre')
-    .all(`%${termino}%`);
+  return db.prepare(`
+    SELECT 
+      p.*,
+      (
+        SELECT url 
+        FROM producto_imagenes pi 
+        WHERE pi.producto_id = p.id 
+        ORDER BY pi.id DESC 
+        LIMIT 1
+      ) as thumb_url
+    FROM productos p
+    WHERE p.nombre LIKE ? AND p.activo = 1
+    ORDER BY p.nombre
+  `).all(`%${termino}%`);
+}
+
+function searchByNombreOrId(termino) {
+  const db = getDb();
+  const t = String(termino || '').trim();
+  const like = `%${t}%`;
+  return db.prepare(`
+    SELECT 
+      p.*,
+      (
+        SELECT url 
+        FROM producto_imagenes pi 
+        WHERE pi.producto_id = p.id 
+        ORDER BY pi.id DESC 
+        LIMIT 1
+      ) as thumb_url
+    FROM productos p
+    WHERE p.activo = 1
+      AND (
+        p.nombre LIKE ?
+        OR CAST(p.id AS TEXT) LIKE ?
+      )
+    ORDER BY p.nombre
+  `).all(like, like);
 }
 
 /**
@@ -139,6 +200,7 @@ module.exports = {
   getAll,
   getAllIncludingDisabled,
   searchByNombre,
+  searchByNombreOrId,
   getById,
   getImagenesByProductoId,
   addImagen,

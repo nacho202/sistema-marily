@@ -100,10 +100,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Filtrar productos
                 const filtered = allProductos.filter(option => {
                     if (!option.value) return false;
-                    // Intentar obtener el nombre del data-nombre primero, si no existe usar el texto
+                    // Intentar obtener el nombre del data-search primero (permite buscar por ID), si no existe usar el texto
                     let nombre = '';
-                    if (option.dataset.nombre) {
-                        nombre = option.dataset.nombre.toLowerCase();
+                    if (option.dataset.search) {
+                        nombre = option.dataset.search.toLowerCase();
                     } else {
                         const texto = option.textContent.trim();
                         nombre = texto.toLowerCase().split(' (')[0].trim();
@@ -194,12 +194,12 @@ document.addEventListener('DOMContentLoaded', function() {
         productoSelect.value = '';
         productoSelect.style.display = 'none';
         
-        // Asegurarse de que todas las opciones tengan data-nombre
+        // Asegurarse de que todas las opciones tengan data-search
         Array.from(productoSelect.options).forEach(option => {
-            if (option.value && !option.dataset.nombre) {
+            if (option.value && !option.dataset.search) {
                 const originalOption = productoSelectTemplate.querySelector(`option[value="${option.value}"]`);
-                if (originalOption && originalOption.dataset.nombre) {
-                    option.dataset.nombre = originalOption.dataset.nombre;
+                if (originalOption && originalOption.dataset.search) {
+                    option.dataset.search = originalOption.dataset.search;
                     option.dataset.stock = originalOption.dataset.stock || '';
                 }
             }
@@ -342,8 +342,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         const select = item.querySelector('.producto-select');
                         const option = document.createElement('option');
                         option.value = data.producto.id;
-                        option.textContent = `${data.producto.nombre} (Stock: ${data.producto.stock_actual})`;
-                        option.dataset.nombre = data.producto.nombre.toLowerCase();
+                        option.textContent = `#${data.producto.id} - ${data.producto.nombre} (Stock: ${data.producto.stock_actual})`;
+                        option.dataset.search = `${data.producto.id} ${data.producto.nombre}`.toLowerCase();
                         option.dataset.stock = data.producto.stock_actual;
                         select.appendChild(option);
                     });

@@ -59,7 +59,7 @@ function listar(req, res) {
     } else {
       // Solo mostrar productos activos
       productos = termino 
-        ? productosModel.searchByNombre(termino)
+        ? productosModel.searchByNombreOrId(termino)
         : productosModel.getAll();
     }
     
@@ -180,6 +180,22 @@ function mostrarFormularioEditar(req, res) {
     }
     const imagenes = productosModel.getImagenesByProductoId(req.params.id);
     res.render('productos/editar', { producto, imagenes });
+  } catch (error) {
+    res.render('error', { message: 'Error al cargar el producto', error });
+  }
+}
+
+function mostrarDetalle(req, res) {
+  try {
+    const producto = productosModel.getById(req.params.id);
+    if (!producto) {
+      return res.status(404).render('error', {
+        message: 'Producto no encontrado',
+        error: { status: 404 }
+      });
+    }
+    const imagenes = productosModel.getImagenesByProductoId(req.params.id);
+    res.render('productos/detalle', { producto, imagenes });
   } catch (error) {
     res.render('error', { message: 'Error al cargar el producto', error });
   }
@@ -327,6 +343,7 @@ module.exports = {
   listar,
   mostrarFormularioNuevo,
   crear,
+  mostrarDetalle,
   mostrarFormularioEditar,
   actualizar,
   eliminarImagen,

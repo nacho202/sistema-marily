@@ -91,11 +91,11 @@
                                 <% productos.forEach(producto => { %>
                                     <option
                                         value="<%= producto.id %>"
-                                        data-nombre="<%= producto.nombre.toLowerCase() %>"
+                                        data-search="<%= `${producto.id} ${producto.nombre}`.toLowerCase() %>"
                                         data-precio="<%= producto.precio %>"
                                         data-stock="<%= producto.stock_actual %>"
                                     >
-                                        <%= producto.nombre %> - $<%= producto.precio.toFixed(2) %> (Stock: <%= producto.stock_actual %>)
+                                        #<%= producto.id %> - <%= producto.nombre %> - $<%= producto.precio.toFixed(2) %> (Stock: <%= producto.stock_actual %>)
                                     </option>
                                 <% }); %>
                             </select>

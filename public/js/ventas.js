@@ -488,7 +488,7 @@ function initProductoSearch(item) {
     searchInput.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase().trim();
         const filtered = searchTerm
-            ? allOptions.filter(opt => (opt.dataset?.nombre || '').includes(searchTerm))
+            ? allOptions.filter(opt => (opt.dataset?.search || opt.textContent || '').toLowerCase().includes(searchTerm))
             : allOptions;
         showOptions(filtered);
     });
@@ -497,7 +497,7 @@ function initProductoSearch(item) {
         if (dropdown.style.display === 'block') return;
         const searchTerm = this.value.toLowerCase().trim();
         const filtered = searchTerm
-            ? allOptions.filter(opt => (opt.dataset?.nombre || '').includes(searchTerm))
+            ? allOptions.filter(opt => (opt.dataset?.search || opt.textContent || '').toLowerCase().includes(searchTerm))
             : allOptions;
         showOptions(filtered);
     });

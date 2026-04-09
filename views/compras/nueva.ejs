@@ -35,8 +35,8 @@
                             <select name="productos[0][producto_id]" class="producto-select" required style="display: none;">
                                 <option value="">Seleccionar producto</option>
                                 <% productos.forEach(producto => { %>
-                                    <option value="<%= producto.id %>" data-nombre="<%= producto.nombre.toLowerCase() %>" data-stock="<%= producto.stock_actual %>">
-                                        <%= producto.nombre %> (Stock: <%= producto.stock_actual %>)
+                                    <option value="<%= producto.id %>" data-search="<%= `${producto.id} ${producto.nombre}`.toLowerCase() %>" data-stock="<%= producto.stock_actual %>">
+                                        #<%= producto.id %> - <%= producto.nombre %> (Stock: <%= producto.stock_actual %>)
                                     </option>
                                 <% }); %>
                             </select>

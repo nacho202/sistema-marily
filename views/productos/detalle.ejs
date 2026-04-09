@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('../partials/head') %>
+    <title>Producto #<%= producto.id %> - <%= producto.nombre %></title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/navbar') %>
+
+    <main class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-box"></i> Producto #<%= producto.id %></h2>
+            <a href="/productos" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Productos
+            </a>
+        </div>
+
+        <div class="section" style="display:grid; grid-template-columns: 280px 1fr; gap: 1.25rem; align-items:start;">
+            <div>
+                <% if (imagenes && imagenes.length > 0) { %>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <% imagenes.slice(0, 4).forEach(img => { %>
+                            <a href="<%= img.url %>" target="_blank" rel="noreferrer" style="display:block;">
+                                <img src="<%= img.url %>" alt="Imagen producto" style="width: 100%; height: 130px; object-fit: cover; border-radius: 8px; border: 1px solid #d1cfff;">
+                            </a>
+                        <% }); %>
+                    </div>
+                    <% if (imagenes.length > 4) { %>
+                        <p style="color:#666; margin-top: 0.5rem;">+<%= imagenes.length - 4 %> más</p>
+                    <% } %>
+                <% } else { %>
+                    <div style="height: 180px; display:flex; align-items:center; justify-content:center; border: 1px dashed #d1cfff; border-radius: 8px; background:#f8f7ff; color:#666;">
+                        Sin imagen
+                    </div>
+                <% } %>
+            </div>
+
+            <div>
+                <h3 style="margin-top:0;"><%= producto.nombre %></h3>
+                <p style="color:#666; white-space: pre-wrap;"><%= producto.descripcion || 'Sin descripción.' %></p>
+
+                <div class="dashboard-grid" style="margin-top: 1rem;">
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-tag"></i> Precio venta</h3>
+                        <p class="dashboard-value">$<%= producto.precio.toFixed(2) %></p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-boxes-stacked"></i> Stock</h3>
+                        <p class="dashboard-value"><%= producto.stock_actual %></p>
+                    </div>
+                </div>
+
+                <div class="form-actions" style="margin-top: 1rem;">
+                    <a href="/productos/<%= producto.id %>/editar" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <form method="POST" action="/productos/<%= producto.id %>/eliminar" class="inline-form" onsubmit="return confirm('¿Estás seguro de deshabilitar este producto?');">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-ban"></i> Deshabilitar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/help-button') %>
+    <%- include('../partials/help-modal') %>
+
+    <script src="/js/main.js?v=<%= assetVersion || 'dev' %>"></script>
+    <script src="/js/help.js?v=<%= assetVersion || 'dev' %>"></script>
+</body>
+</html>
+
