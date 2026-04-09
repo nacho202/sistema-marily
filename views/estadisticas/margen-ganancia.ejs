@@ -44,6 +44,9 @@
         <% if (margenes && margenes.length > 0) { %>
             <div class="section">
                 <h3>Margen por Producto</h3>
+                <p style="color:#666; margin-top: -0.5rem;">
+                    Costo calculado con <strong>FIFO por compras</strong> (se consume primero lo comprado antes).
+                </p>
                 <table class="table">
                     <thead>
                         <tr>
@@ -53,6 +56,7 @@
                             <th>Total Costos</th>
                             <th>Ganancia</th>
                             <th>Margen %</th>
+                            <th style="color:#666;">Sin costo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,6 +72,7 @@
                                 <td style="color: <%= producto.margen_porcentaje >= 0 ? '#10b981' : '#ef4444' %>; font-weight: bold;">
                                     <%= producto.margen_porcentaje >= 0 ? '+' : '' %><%= producto.margen_porcentaje %>%
                                 </td>
+                                <td style="color:#666;"><%= producto.qty_sin_costo ? producto.qty_sin_costo : 0 %></td>
                             </tr>
                         <% }); %>
                     </tbody>

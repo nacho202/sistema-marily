@@ -221,68 +221,135 @@ function getMargenGananciaPorProducto(fechaInicio, fechaFin) {
   const db = getDb();
   const fechaFinQuery = fechaFin + ' 23:59:59';
 
-  // Obtener ventas por producto
-  const ventasPorProducto = db.prepare(`
-    SELECT 
-      p.id,
-      p.nombre,
-      SUM(dv.cantidad * dv.precio_unitario) as total_ventas,
-      SUM(dv.cantidad) as cantidad_vendida
+  // FIFO por lotes: costear cada venta consumiendo compras anteriores por fecha
+  // Nota: compras.fecha es YYYY-MM-DD (sin hora). ventas.fecha es YYYY-MM-DD HH:mm:ss.
+
+  const comprasLotes = db.prepare(`
+    SELECT
+      dc.producto_id as producto_id,
+      p.nombre as producto_nombre,
+      c.fecha as fecha_compra,
+      dc.cantidad as cantidad,
+      COALESCE(dc.costo_unitario, 0) as costo_unitario
+    FROM detalle_compras dc
+    JOIN compras c ON dc.compra_id = c.id
+    JOIN productos p ON dc.producto_id = p.id
+    WHERE c.fecha <= ?
+    ORDER BY c.fecha ASC, dc.id ASC
+  `).all(fechaFin);
+
+  const ventasDetalles = db.prepare(`
+    SELECT
+      dv.producto_id as producto_id,
+      p.nombre as producto_nombre,
+      v.fecha as fecha_venta,
+      dv.cantidad as cantidad,
+      dv.precio_unitario as precio_unitario
     FROM detalle_ventas dv
-    JOIN productos p ON dv.producto_id = p.id
     JOIN ventas v ON dv.venta_id = v.id
+    JOIN productos p ON dv.producto_id = p.id
     WHERE v.fecha >= ? AND v.fecha <= ?
-    GROUP BY p.id, p.nombre
+    ORDER BY v.fecha ASC, dv.id ASC
   `).all(fechaInicio, fechaFinQuery);
 
-  // Obtener costos por producto (promedio ponderado del costo unitario de compras hasta la fecha de inicio)
-  // Esto asegura que solo se consideren los costos de productos comprados antes del período de ventas
-  const costosPorProducto = db.prepare(`
-    SELECT 
-      p.id,
-      p.nombre,
-      SUM(dc.cantidad * COALESCE(dc.costo_unitario, 0)) as total_costos,
-      SUM(dc.cantidad) as cantidad_comprada
-    FROM detalle_compras dc
-    JOIN productos p ON dc.producto_id = p.id
-    JOIN compras c ON dc.compra_id = c.id
-    WHERE c.fecha < ?
-    GROUP BY p.id, p.nombre
-  `).all(fechaInicio);
+  // Agrupar lotes por producto
+  const lotesPorProducto = new Map(); // productoId -> [{fecha, remaining, costo}]
+  const nombrePorProducto = new Map();
 
-  // Crear mapa de costos
-  const costosMap = {};
-  costosPorProducto.forEach(costo => {
-    costosMap[costo.id] = {
-      total_costos: costo.total_costos || 0,
-      cantidad_comprada: costo.cantidad_comprada || 0,
-      costo_promedio: costo.cantidad_comprada > 0 
-        ? (costo.total_costos / costo.cantidad_comprada) 
-        : 0
-    };
-  });
+  for (const l of comprasLotes) {
+    const pid = String(l.producto_id);
+    nombrePorProducto.set(pid, l.producto_nombre);
+    if (!lotesPorProducto.has(pid)) lotesPorProducto.set(pid, []);
+    lotesPorProducto.get(pid).push({
+      fecha: String(l.fecha_compra), // YYYY-MM-DD
+      remaining: Number(l.cantidad) || 0,
+      costo: Number(l.costo_unitario) || 0,
+    });
+  }
 
-  // Calcular margen de ganancia
-  const margenes = ventasPorProducto.map(venta => {
-    const costo = costosMap[venta.id] || { costo_promedio: 0, total_costos: 0 };
-    const costoTotal = venta.cantidad_vendida * costo.costo_promedio;
-    const ganancia = venta.total_ventas - costoTotal;
-    const margenPorcentaje = venta.total_ventas > 0 
-      ? ((ganancia / venta.total_ventas) * 100).toFixed(2)
-      : 0;
+  // Cursor de consumo por producto
+  const idxPorProducto = new Map(); // productoId -> index
 
+  function costearFIFO(productoId, fechaVenta, cantidad) {
+    const pid = String(productoId);
+    const qty = Number(cantidad) || 0;
+    if (qty <= 0) return { costoTotal: 0, qtyCosteada: 0, qtySinCosto: 0 };
+
+    const lotes = lotesPorProducto.get(pid) || [];
+    let idx = idxPorProducto.get(pid) || 0;
+    let restante = qty;
+    let costoTotal = 0;
+    let qtyCosteada = 0;
+
+    // Solo usar lotes con fecha_compra <= fechaVenta (comparación lexicográfica funciona con YYYY-MM-DD)
+    const fechaVentaDia = String(fechaVenta).slice(0, 10); // YYYY-MM-DD
+
+    while (restante > 0 && idx < lotes.length) {
+      const lote = lotes[idx];
+      if (lote.remaining <= 0) {
+        idx++;
+        continue;
+      }
+      if (lote.fecha > fechaVentaDia) break;
+
+      const take = Math.min(restante, lote.remaining);
+      costoTotal += take * lote.costo;
+      lote.remaining -= take;
+      restante -= take;
+      qtyCosteada += take;
+
+      if (lote.remaining <= 0) idx++;
+    }
+
+    idxPorProducto.set(pid, idx);
+    return { costoTotal, qtyCosteada, qtySinCosto: restante };
+  }
+
+  // Agregados por producto para el reporte
+  const agg = new Map(); // pid -> {id,nombre,total_ventas,total_costos,cantidad_vendida,qtySinCosto}
+
+  for (const v of ventasDetalles) {
+    const pid = String(v.producto_id);
+    const nombre = v.producto_nombre || nombrePorProducto.get(pid) || 'Producto';
+    const cantidad = Number(v.cantidad) || 0;
+    const precio = Number(v.precio_unitario) || 0;
+    const totalVenta = cantidad * precio;
+
+    if (!agg.has(pid)) {
+      agg.set(pid, {
+        id: Number(v.producto_id),
+        nombre,
+        total_ventas: 0,
+        total_costos: 0,
+        cantidad_vendida: 0,
+        qty_sin_costo: 0,
+      });
+    }
+
+    const row = agg.get(pid);
+    row.total_ventas += totalVenta;
+    row.cantidad_vendida += cantidad;
+
+    const { costoTotal, qtySinCosto } = costearFIFO(pid, v.fecha_venta, cantidad);
+    row.total_costos += costoTotal;
+    row.qty_sin_costo += qtySinCosto;
+  }
+
+  const margenes = Array.from(agg.values()).map((r) => {
+    const ganancia = r.total_ventas - r.total_costos;
+    const margenPorcentaje = r.total_ventas > 0 ? ((ganancia / r.total_ventas) * 100) : 0;
     return {
-      id: venta.id,
-      nombre: venta.nombre,
-      total_ventas: venta.total_ventas || 0,
-      total_costos: costoTotal,
-      ganancia: ganancia,
-      margen_porcentaje: parseFloat(margenPorcentaje),
-      cantidad_vendida: venta.cantidad_vendida || 0
+      id: r.id,
+      nombre: r.nombre,
+      total_ventas: r.total_ventas || 0,
+      total_costos: r.total_costos || 0,
+      ganancia,
+      margen_porcentaje: parseFloat(margenPorcentaje.toFixed(2)),
+      cantidad_vendida: r.cantidad_vendida || 0,
+      qty_sin_costo: r.qty_sin_costo || 0,
     };
   });
 
-  // Ordenar por ganancia descendente
   return margenes.sort((a, b) => b.ganancia - a.ganancia);
 }
 
