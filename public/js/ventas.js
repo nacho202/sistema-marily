@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     agregarProductoBtn.addEventListener('click', function() {
         const nuevoItem = crearProductoItem(productoIndex);
         productosContainer.appendChild(nuevoItem);
+        initProductoSearch(nuevoItem);
         productoIndex++;
         actualizarTotal();
     });
@@ -71,9 +72,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const item = document.createElement('div');
         item.className = 'producto-item';
         
-        const select = productosContainer.querySelector('.producto-select').cloneNode(true);
+        const picker = productosContainer.querySelector('.producto-picker').cloneNode(true);
+        const select = picker.querySelector('.producto-select');
+        const searchInput = picker.querySelector('.producto-search');
+        const dropdown = picker.querySelector('.producto-dropdown');
+
         select.setAttribute('name', `productos[${index}][producto_id]`);
         select.value = '';
+        searchInput.value = '';
+        dropdown.innerHTML = '';
+        dropdown.style.display = 'none';
         
         const cantidadInput = productosContainer.querySelector('.cantidad-input').cloneNode(true);
         cantidadInput.setAttribute('name', `productos[${index}][cantidad]`);
@@ -89,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
         removeBtn.textContent = 'Eliminar';
         removeBtn.style.display = 'inline-block';
         
-        item.appendChild(select);
+        item.appendChild(picker);
         item.appendChild(cantidadInput);
         item.appendChild(subtotalSpan);
         item.appendChild(removeBtn);
@@ -169,6 +177,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializar
     actualizarIndices();
     actualizarTotal();
+
+    // Inicializar búsqueda de producto en la primera fila
+    const firstItem = productosContainer.querySelector('.producto-item');
+    if (firstItem) initProductoSearch(firstItem);
     
     // Funcionalidad para crear cliente inline
     const formNuevoCliente = document.getElementById('form-nuevo-cliente');
@@ -419,5 +431,76 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function formatCurrency(amount) {
     return '$' + parseFloat(amount).toFixed(2);
+}
+
+function initProductoSearch(item) {
+    const searchInput = item.querySelector('.producto-search');
+    const select = item.querySelector('.producto-select');
+    const dropdown = item.querySelector('.producto-dropdown');
+
+    if (!searchInput || !select || !dropdown) return;
+
+    const allOptions = Array.from(select.options).slice(1); // excluir "Seleccionar producto"
+
+    function hideDropdown() {
+        dropdown.style.display = 'none';
+    }
+
+    function showOptions(list) {
+        dropdown.innerHTML = '';
+        const limited = list.slice(0, 50);
+        limited.forEach(option => {
+            const div = document.createElement('div');
+            div.style.padding = '0.7rem 1rem';
+            div.style.cursor = 'pointer';
+            div.style.borderBottom = '1px solid #d1cfff';
+            div.textContent = option.textContent;
+            div.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#e7e6ff';
+            });
+            div.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+            });
+            div.addEventListener('click', function() {
+                select.value = option.value;
+                searchInput.value = option.textContent.trim().replace(/\s+/g, ' ');
+                hideDropdown();
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            dropdown.appendChild(div);
+        });
+        dropdown.style.display = limited.length ? 'block' : 'none';
+    }
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const filtered = searchTerm
+            ? allOptions.filter(opt => (opt.dataset?.nombre || '').includes(searchTerm))
+            : allOptions;
+        showOptions(filtered);
+    });
+
+    searchInput.addEventListener('focus', function() {
+        if (dropdown.style.display === 'block') return;
+        const searchTerm = this.value.toLowerCase().trim();
+        const filtered = searchTerm
+            ? allOptions.filter(opt => (opt.dataset?.nombre || '').includes(searchTerm))
+            : allOptions;
+        showOptions(filtered);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            hideDropdown();
+        }
+    });
+
+    // Si por alguna razón cambia el select (ej. por autofill), sincronizar input
+    select.addEventListener('change', function() {
+        if (this.value) {
+            const selectedOption = this.options[this.selectedIndex];
+            searchInput.value = selectedOption.textContent.trim().replace(/\s+/g, ' ');
+        }
+    });
 }
 

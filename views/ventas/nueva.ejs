@@ -78,14 +78,29 @@
                 <h3>Productos</h3>
                 <div id="productos-container">
                     <div class="producto-item">
-                        <select name="productos[0][producto_id]" class="producto-select" required>
-                            <option value="">Seleccionar producto</option>
-                            <% productos.forEach(producto => { %>
-                                <option value="<%= producto.id %>" data-precio="<%= producto.precio %>" data-stock="<%= producto.stock_actual %>">
-                                    <%= producto.nombre %> - $<%= producto.precio.toFixed(2) %> (Stock: <%= producto.stock_actual %>)
-                                </option>
-                            <% }); %>
-                        </select>
+                        <div class="producto-picker" style="position: relative; flex: 1; min-width: 260px;">
+                            <input
+                                type="text"
+                                class="producto-search"
+                                placeholder="Buscar producto por nombre..."
+                                autocomplete="off"
+                                style="width: 100%; padding: 0.7rem; border: 1px solid #d1cfff; border-radius: 4px; font-size: 1rem; background-color: #f2f1ff;"
+                            >
+                            <select name="productos[0][producto_id]" class="producto-select" required style="display:none;">
+                                <option value="">Seleccionar producto</option>
+                                <% productos.forEach(producto => { %>
+                                    <option
+                                        value="<%= producto.id %>"
+                                        data-nombre="<%= producto.nombre.toLowerCase() %>"
+                                        data-precio="<%= producto.precio %>"
+                                        data-stock="<%= producto.stock_actual %>"
+                                    >
+                                        <%= producto.nombre %> - $<%= producto.precio.toFixed(2) %> (Stock: <%= producto.stock_actual %>)
+                                    </option>
+                                <% }); %>
+                            </select>
+                            <div class="producto-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #f2f1ff; border: 1px solid #d1cfff; border-top: none; border-radius: 0 0 4px 4px; max-height: 220px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                        </div>
                         <input type="number" name="productos[0][cantidad]" placeholder="Cantidad" min="1" required class="cantidad-input">
                         <span class="subtotal">$0.00</span>
                                     <button type="button" class="btn btn-danger btn-small remove-producto" style="display:none;"><i class="fas fa-trash"></i> Eliminar</button>
