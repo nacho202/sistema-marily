@@ -7,7 +7,7 @@ const clientesModel = require('../models/clientes');
  */
 router.get('/', (req, res) => {
   try {
-    const clientes = clientesModel.getAllOrderedByCumpleanios();
+    const clientes = clientesModel.getProximosCumpleanios(10);
     res.render('cumpleanios/index', { clientes });
   } catch (error) {
     res.render('error', { message: 'Error al cargar cumpleaños', error });

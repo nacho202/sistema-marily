@@ -198,7 +198,7 @@ sistema-vivero/
 
 ### 6. Cumpleaños
 
-- **Calendario**: `/cumpleanios`
+- **Calendario**: `/cumpleanos` (redirige desde `/cumpleanios`)
   - Listado de clientes ordenados por fecha de cumpleaños
 
 ## 🔒 Validaciones

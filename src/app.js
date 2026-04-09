@@ -76,7 +76,7 @@ app.use((req, res, next) => {
   else if (req.path.startsWith('/ventas')) helpPage = 'ventas';
   else if (req.path.startsWith('/compras')) helpPage = 'compras';
   else if (req.path.startsWith('/estadisticas')) helpPage = 'estadisticas';
-  else if (req.path.startsWith('/cumpleanios')) helpPage = 'cumpleanios';
+  else if (req.path.startsWith('/cumpleanos') || req.path.startsWith('/cumpleanios')) helpPage = 'cumpleanios';
   
   res.locals.helpContent = getHelpContent(helpPage);
   next();
@@ -92,7 +92,8 @@ app.use('/clientes', require('./routes/clientes'));
 app.use('/ventas', require('./routes/ventas'));
 app.use('/compras', require('./routes/compras'));
 app.use('/estadisticas', require('./routes/estadisticas'));
-app.use('/cumpleanios', require('./routes/cumpleanios'));
+app.get('/cumpleanios', (req, res) => res.redirect(301, '/cumpleanos'));
+app.use('/cumpleanos', require('./routes/cumpleanios'));
 
 // Manejo de errores 404
 app.use((req, res) => {
