@@ -91,9 +91,9 @@
     <%- include('../partials/help-button') %>
     <%- include('../partials/help-modal') %>
     
-    <script src="/js/main.js"></script>
-    <script src="/js/compras.js"></script>
-    <script src="/js/help.js"></script>
+    <script src="/js/main.js?v=<%= assetVersion || 'dev' %>"></script>
+    <script src="/js/compras.js?v=<%= assetVersion || 'dev' %>"></script>
+    <script src="/js/help.js?v=<%= assetVersion || 'dev' %>"></script>
 </body>
 </html>
 

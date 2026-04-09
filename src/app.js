@@ -6,6 +6,7 @@ const { getHelpContent } = require('./utils/helpContent');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const ASSET_VERSION = process.env.ASSET_VERSION || require('../package.json').version;
 
 if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
   throw new Error('Falta configurar SESSION_SECRET en producción');
@@ -41,6 +42,13 @@ app.use(
 
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Variables para vistas y evitar cache del HTML
+app.use((req, res, next) => {
+  res.locals.assetVersion = ASSET_VERSION;
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
 
 // Autenticación
 app.use(require('./routes/auth'));
