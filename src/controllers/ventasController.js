@@ -59,6 +59,7 @@ function crear(req, res) {
     // Validar stock y preparar detalles
     const detalles = [];
     let total = 0;
+    const cantidadesPorProducto = new Map();
 
     for (const item of productosData) {
       const productoId = parseInt(item.producto_id);
@@ -73,13 +74,18 @@ function crear(req, res) {
         throw new Error(`Cantidad inválida para el producto ${producto.nombre}`);
       }
 
-      // Verificar stock disponible
+      // Acumular cantidad por producto (por si se repite)
+      const prev = cantidadesPorProducto.get(productoId) || 0;
+      const acumulada = prev + cantidad;
+      cantidadesPorProducto.set(productoId, acumulada);
+
+      // Verificar stock disponible (contra cantidad total acumulada)
       const stockDisponible = productosModel.getStock(productoId);
-      if (stockDisponible < cantidad) {
+      if (stockDisponible < acumulada) {
         const productos = productosModel.getAll();
         const clientes = clientesModel.getAll();
         return res.render('ventas/nueva', {
-          error: `Stock insuficiente para ${producto.nombre}. Stock disponible: ${stockDisponible}`,
+          error: `Stock insuficiente para ${producto.nombre}. Stock disponible: ${stockDisponible}. Intentaste vender: ${acumulada}`,
           productos,
           clientes,
           cliente_id

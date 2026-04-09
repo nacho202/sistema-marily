@@ -148,24 +148,37 @@ document.addEventListener('DOMContentLoaded', function() {
         const items = productosContainer.querySelectorAll('.producto-item');
         let hayError = false;
         let mensajeError = '';
-        
+
+        // Acumular cantidades por producto (por si se repite en varias filas)
+        const cantidades = new Map();
+        const stocks = new Map();
+        const nombres = new Map();
+
         items.forEach(item => {
             const select = item.querySelector('.producto-select');
             const cantidadInput = item.querySelector('.cantidad-input');
-            
-            if (!select.value || !cantidadInput.value) {
-                return;
-            }
-            
+
+            if (!select?.value || !cantidadInput?.value) return;
+
+            const productoId = String(select.value);
             const stock = parseFloat(select.options[select.selectedIndex]?.dataset.stock || 0);
             const cantidad = parseFloat(cantidadInput.value || 0);
             const productoNombre = select.options[select.selectedIndex]?.text.split(' - ')[0] || '';
-            
-            if (cantidad > stock) {
-                hayError = true;
-                mensajeError = `Stock insuficiente para ${productoNombre}. Stock disponible: ${stock}`;
-            }
+
+            stocks.set(productoId, stock);
+            nombres.set(productoId, productoNombre);
+            cantidades.set(productoId, (cantidades.get(productoId) || 0) + cantidad);
         });
+
+        for (const [productoId, cantidadTotal] of cantidades.entries()) {
+            const stock = stocks.get(productoId) || 0;
+            if (cantidadTotal > stock) {
+                hayError = true;
+                const nombre = nombres.get(productoId) || 'Producto';
+                mensajeError = `Stock insuficiente para ${nombre}. Stock disponible: ${stock}. Intentaste vender: ${cantidadTotal}`;
+                break;
+            }
+        }
         
         if (hayError) {
             e.preventDefault();
