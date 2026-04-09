@@ -1,4 +1,22 @@
 const productosModel = require('../models/productos');
+const path = require('path');
+const fs = require('fs');
+
+function normalizeUrls(input) {
+  if (!input) return [];
+  const arr = Array.isArray(input) ? input : [input];
+  return arr
+    .flatMap(v => String(v).split(/\r?\n/))
+    .map(v => v.trim())
+    .filter(Boolean)
+    .filter(v => /^https?:\/\//i.test(v));
+}
+
+function fileToPublicUrl(file) {
+  // file.path apunta a .../public/uploads/productos/<filename>
+  const filename = path.basename(file.path);
+  return `/uploads/productos/${filename}`;
+}
 
 /**
  * Lista todos los productos con opción de búsqueda
@@ -62,7 +80,8 @@ function crear(req, res) {
                  req.xhr ||
                  req.headers.accept && req.headers.accept.includes('application/json');
   try {
-    const { nombre, descripcion, precio, stock_actual, imagen } = req.body;
+    const { nombre, descripcion, precio, stock_actual } = req.body;
+    const imagenesUrls = normalizeUrls(req.body['imagenes_urls[]'] || req.body.imagenes_urls);
 
     // Validaciones
     if (!nombre || !precio) {
@@ -93,8 +112,20 @@ function crear(req, res) {
       descripcion,
       precio: precioNum,
       stock_actual: stockNum,
-      imagen
+      imagen: null
     });
+
+    // Guardar imágenes por URL
+    for (const url of imagenesUrls) {
+      productosModel.addImagen(productoId, url, 'url');
+    }
+
+    // Guardar imágenes subidas
+    const files = Array.isArray(req.files) ? req.files : [];
+    for (const file of files) {
+      const url = fileToPublicUrl(file);
+      productosModel.addImagen(productoId, url, 'upload');
+    }
 
     // Si es una petición AJAX, devolver JSON con el nuevo producto
     if (isAjax) {
@@ -130,7 +161,8 @@ function mostrarFormularioEditar(req, res) {
         error: { status: 404 }
       });
     }
-    res.render('productos/editar', { producto });
+    const imagenes = productosModel.getImagenesByProductoId(req.params.id);
+    res.render('productos/editar', { producto, imagenes });
   } catch (error) {
     res.render('error', { message: 'Error al cargar el producto', error });
   }
@@ -141,23 +173,28 @@ function mostrarFormularioEditar(req, res) {
  */
 function actualizar(req, res) {
   try {
-    const { nombre, descripcion, precio, imagen } = req.body;
+    const { nombre, descripcion, precio } = req.body;
+    const imagenesUrls = normalizeUrls(req.body['imagenes_urls[]'] || req.body.imagenes_urls);
 
     // Validaciones
     if (!nombre || !precio) {
       const producto = productosModel.getById(req.params.id);
+      const imagenes = productosModel.getImagenesByProductoId(req.params.id);
       return res.render('productos/editar', {
         error: 'El nombre y el precio son obligatorios',
-        producto: { ...producto, ...req.body }
+        producto: { ...producto, ...req.body },
+        imagenes
       });
     }
 
     const precioNum = parseFloat(precio);
     if (isNaN(precioNum) || precioNum < 0) {
       const producto = productosModel.getById(req.params.id);
+      const imagenes = productosModel.getImagenesByProductoId(req.params.id);
       return res.render('productos/editar', {
         error: 'El precio debe ser un número válido',
-        producto: { ...producto, ...req.body }
+        producto: { ...producto, ...req.body },
+        imagenes
       });
     }
 
@@ -165,12 +202,50 @@ function actualizar(req, res) {
       nombre,
       descripcion,
       precio: precioNum,
-      imagen
+      imagen: null
     });
+
+    // Agregar nuevas imágenes por URL
+    for (const url of imagenesUrls) {
+      productosModel.addImagen(req.params.id, url, 'url');
+    }
+
+    // Agregar nuevas imágenes subidas
+    const files = Array.isArray(req.files) ? req.files : [];
+    for (const file of files) {
+      const url = fileToPublicUrl(file);
+      productosModel.addImagen(req.params.id, url, 'upload');
+    }
 
     res.redirect('/productos');
   } catch (error) {
     res.render('error', { message: 'Error al actualizar el producto', error });
+  }
+}
+
+function eliminarImagen(req, res) {
+  try {
+    const productoId = String(req.params.id);
+    const imagenId = String(req.params.imagenId);
+
+    const imagenes = productosModel.getImagenesByProductoId(productoId);
+    const img = imagenes.find(i => String(i.id) === imagenId);
+
+    productosModel.deleteImagen(productoId, imagenId);
+
+    // Si era un upload local, borrar archivo físico
+    if (img && img.origen === 'upload' && typeof img.url === 'string' && img.url.startsWith('/uploads/productos/')) {
+      const filePath = path.join(__dirname, '../../public', img.url.replace(/^\//, ''));
+      try {
+        fs.unlinkSync(filePath);
+      } catch (e) {
+        // ignorar si ya no existe
+      }
+    }
+
+    res.redirect(`/productos/${productoId}/editar`);
+  } catch (error) {
+    res.render('error', { message: 'Error al eliminar la imagen', error });
   }
 }
 
@@ -230,6 +305,7 @@ module.exports = {
   crear,
   mostrarFormularioEditar,
   actualizar,
+  eliminarImagen,
   eliminar,
   actualizarStock,
   habilitar

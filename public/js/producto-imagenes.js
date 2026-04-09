@@ -1,0 +1,128 @@
+document.addEventListener('DOMContentLoaded', function () {
+  const blocks = document.querySelectorAll('[data-producto-imagenes]');
+  blocks.forEach(initBlock);
+});
+
+function initBlock(block) {
+  const fileInput = block.querySelector('input[type="file"][name="imagenes_files"]');
+  const urlInput = block.querySelector('input[data-imagen-url-input]');
+  const addUrlBtn = block.querySelector('button[data-imagen-add-url]');
+  const dropzone = block.querySelector('[data-imagen-dropzone]');
+  const list = block.querySelector('[data-imagen-list]');
+
+  if (!list) return;
+
+  function addUrl(url) {
+    const normalized = String(url || '').trim();
+    if (!/^https?:\/\//i.test(normalized)) return;
+
+    const existing = Array.from(list.querySelectorAll('input[name="imagenes_urls[]"]')).some(
+      (i) => i.value === normalized
+    );
+    if (existing) return;
+
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.gap = '0.5rem';
+    row.style.alignItems = 'center';
+    row.style.marginTop = '0.5rem';
+
+    const preview = document.createElement('img');
+    preview.src = normalized;
+    preview.alt = 'Imagen';
+    preview.style.width = '56px';
+    preview.style.height = '56px';
+    preview.style.objectFit = 'cover';
+    preview.style.borderRadius = '6px';
+    preview.style.border = '1px solid #d1cfff';
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'imagenes_urls[]';
+    input.value = normalized;
+
+    const text = document.createElement('div');
+    text.style.flex = '1';
+    text.style.overflow = 'hidden';
+    text.style.textOverflow = 'ellipsis';
+    text.style.whiteSpace = 'nowrap';
+    text.textContent = normalized;
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'btn btn-small btn-danger';
+    remove.textContent = 'Quitar';
+    remove.addEventListener('click', () => row.remove());
+
+    row.appendChild(preview);
+    row.appendChild(text);
+    row.appendChild(remove);
+    row.appendChild(input);
+
+    list.appendChild(row);
+  }
+
+  function extractUrlFromDataTransfer(dt) {
+    if (!dt) return null;
+
+    // Intentar primero text/uri-list (drag desde navegador)
+    const uri = dt.getData('text/uri-list');
+    if (uri && /^https?:\/\//i.test(uri.trim())) return uri.trim();
+
+    // Fallback: texto
+    const text = dt.getData('text/plain');
+    if (text && /^https?:\/\//i.test(text.trim())) return text.trim();
+
+    // Fallback: HTML (buscar src=)
+    const html = dt.getData('text/html');
+    if (html) {
+      const match = html.match(/src=["']([^"']+)["']/i);
+      if (match && match[1] && /^https?:\/\//i.test(match[1])) return match[1];
+    }
+
+    return null;
+  }
+
+  if (addUrlBtn && urlInput) {
+    addUrlBtn.addEventListener('click', function () {
+      addUrl(urlInput.value);
+      urlInput.value = '';
+      urlInput.focus();
+    });
+  }
+
+  if (urlInput) {
+    urlInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addUrl(urlInput.value);
+        urlInput.value = '';
+      }
+    });
+  }
+
+  if (dropzone) {
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.style.outline = '2px dashed #6c63ff';
+      dropzone.style.outlineOffset = '4px';
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.style.outline = 'none';
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.style.outline = 'none';
+
+      // Si soltaron archivos, se manejan con el input file (queda para enviar el form)
+      if (fileInput && e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        return;
+      }
+
+      const url = extractUrlFromDataTransfer(e.dataTransfer);
+      if (url) addUrl(url);
+    });
+  }
+}
+

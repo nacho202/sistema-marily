@@ -15,7 +15,7 @@
             <div class="alert alert-error"><%= error %></div>
         <% } %>
         
-        <form method="POST" action="/productos" class="form">
+        <form method="POST" action="/productos" class="form" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="nombre">Nombre *</label>
                 <input type="text" id="nombre" name="nombre" required value="<%= typeof producto !== 'undefined' ? producto.nombre : '' %>">
@@ -37,8 +37,20 @@
             </div>
             
             <div class="form-group">
-                <label for="imagen">Imagen (URL o nombre de archivo)</label>
-                <input type="text" id="imagen" name="imagen" value="<%= typeof producto !== 'undefined' ? producto.imagen || '' : '' %>">
+                <label>Imágenes</label>
+                <div data-producto-imagenes>
+                    <div data-imagen-dropzone style="padding: 1rem; border: 1px dashed #d1cfff; border-radius: 8px; background: #f8f7ff;">
+                        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+                            <input type="file" name="imagenes_files" accept="image/*" multiple>
+                            <input type="text" data-imagen-url-input placeholder="Pegá un link de imagen (https://...)" style="flex: 1; min-width: 220px;">
+                            <button type="button" class="btn btn-small btn-secondary" data-imagen-add-url>Agregar link</button>
+                        </div>
+                        <p style="margin: 0.75rem 0 0; color:#666; font-size: 0.9rem;">
+                            Tip: podés <strong>arrastrar y soltar</strong> una imagen o un link (por ejemplo desde Google) acá.
+                        </p>
+                    </div>
+                    <div data-imagen-list style="margin-top: 0.75rem;"></div>
+                </div>
             </div>
             
             <div class="form-actions">
@@ -52,6 +64,7 @@
     <%- include('../partials/help-modal') %>
     
     <script src="/js/main.js?v=<%= assetVersion || 'dev' %>"></script>
+    <script src="/js/producto-imagenes.js?v=<%= assetVersion || 'dev' %>"></script>
     <script src="/js/help.js?v=<%= assetVersion || 'dev' %>"></script>
 </body>
 </html>

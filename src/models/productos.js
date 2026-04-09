@@ -33,6 +33,27 @@ function getById(id) {
   return db.prepare('SELECT * FROM productos WHERE id = ?').get(id);
 }
 
+function getImagenesByProductoId(productoId) {
+  const db = getDb();
+  return db
+    .prepare('SELECT * FROM producto_imagenes WHERE producto_id = ? ORDER BY id DESC')
+    .all(productoId);
+}
+
+function addImagen(productoId, url, origen = 'url') {
+  const db = getDb();
+  return db
+    .prepare('INSERT INTO producto_imagenes (producto_id, url, origen) VALUES (?, ?, ?)')
+    .run(productoId, url, origen);
+}
+
+function deleteImagen(productoId, imagenId) {
+  const db = getDb();
+  return db
+    .prepare('DELETE FROM producto_imagenes WHERE id = ? AND producto_id = ?')
+    .run(imagenId, productoId);
+}
+
 /**
  * Crea un nuevo producto
  */
@@ -119,6 +140,9 @@ module.exports = {
   getAllIncludingDisabled,
   searchByNombre,
   getById,
+  getImagenesByProductoId,
+  addImagen,
+  deleteImagen,
   create,
   update,
   deleteById,

@@ -57,6 +57,18 @@ function createTables() {
     // La columna ya existe, no hacer nada
   }
 
+  // Tabla producto_imagenes (múltiples imágenes por producto)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS producto_imagenes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      producto_id INTEGER NOT NULL,
+      url TEXT NOT NULL,
+      origen TEXT NOT NULL DEFAULT 'url',
+      creado_en TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
+    )
+  `);
+
   // Tabla clientes
   db.exec(`
     CREATE TABLE IF NOT EXISTS clientes (

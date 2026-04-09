@@ -58,12 +58,8 @@
                                 <form method="POST" action="/productos/<%= producto.id %>/eliminar" class="inline-form" onsubmit="return confirm('¿Estás seguro de deshabilitar este producto? No se mostrará en las listas pero se mantendrá en el historial.');">
                                     <button type="submit" class="btn btn-small btn-danger"><i class="fas fa-ban"></i> Deshabilitar</button>
                                 </form>
-                                <form method="POST" action="/productos/<%= producto.id %>/stock" class="inline-form stock-form stock-form-desktop">
-                                    <input type="number" name="cantidad" placeholder="Cantidad" min="1" required class="input-small">
-                                    <button type="submit" class="btn btn-small btn-primary"><i class="fas fa-plus-circle"></i> Sumar Stock</button>
-                                </form>
                                 <button type="button" class="btn btn-small btn-primary stock-btn-mobile" data-producto-id="<%= producto.id %>" data-producto-nombre="<%= producto.nombre %>">
-                                    <i class="fas fa-plus"></i>
+                                    <i class="fas fa-plus-circle"></i> Sumar Stock
                                 </button>
                             </td>
                         </tr>
